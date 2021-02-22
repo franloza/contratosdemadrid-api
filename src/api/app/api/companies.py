@@ -23,7 +23,7 @@ async def get_top_companies(
         company_info = await companies_repo.get_company_awardings(company["key"], limit=1)
         if company_info["hits"]["hits"] and company_info["hits"]["hits"][0]:
             bucket = companies["aggregations"]["contracts"]["total"]["buckets"][idx]
-            bucket["company"] = company_info
+            bucket["company"] = company_info["hits"]["hits"][0]["inner_hits"]["adjudicatario"]
             buckets.append(bucket)
     companies["aggregations"]["contracts"]["total"]["buckets"] = buckets
     return companies

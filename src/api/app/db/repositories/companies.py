@@ -15,19 +15,17 @@ class CompaniesRepository(BaseRepository):
 
     async def get_company_awardings(self, company_name: str, limit=None):
         body = {
-            "_source": "adjudicatario",
+            "_source": False,
             "query": {
                 "nested": {
                     "path": "adjudicatario",
+                    "inner_hits": {"size": 1},
                     "query": {
-                        "bool": {
-                            "must": [
-                                {
-                                    "match": {
-                                        "adjudicatario.name": company_name
-                                    }
-                                }
-                            ]
+                        "term": {
+                          "adjudicatario.name.keyword": {
+                            "value": company_name,
+                            "boost": 1.0
+                          }
                         }
                     },
                 }
@@ -41,10 +39,15 @@ class CompaniesRepository(BaseRepository):
     async def get_company_contracts(self, company_id: str) -> dict:
         return await self.client.search(index=CONTRACTS_INDEX_NAME, body={
             "query": {
-                "term": {
-                    "adjudicatario.id": {
-                        "value": company_id,
-                    }
+                "nested": {
+                        "path": "adjudicatario",
+                        "query": {
+                            "term": {
+                                "adjudicatario.id": {
+                                    "value": company_id,
+                                }
+                            }
+                        }
                 }
             },
             "aggs": {
@@ -71,6 +74,7 @@ class CompaniesRepository(BaseRepository):
 
     async def get_top_companies(self) -> dict:
         return await self.client.search(index=CONTRACTS_INDEX_NAME, body={
+            "size": 0,
             "aggs": {
                 "contracts": {
                     "nested": {

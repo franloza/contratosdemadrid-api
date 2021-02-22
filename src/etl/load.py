@@ -73,12 +73,14 @@ def transform(filename, date) -> list:
             "nif": row["NIF ADJUDICATARIO"].replace('-', '').strip()
         }
         if (row['REFERENCIA']) not in contracts:
+            entity = row['ENTIDAD ADJUDICADORA'].split('··>')
             contracts[row['REFERENCIA']] = {
                 'titulo': row['OBJETO DEL CONTRATO'],
                 'referencia': row['REFERENCIA'],
                 'actuacion': row['TIPO DE PUBLICACIÓN'],
                 'tipo': row['TIPO CONTRATO'],
-                'organo': row['ENTIDAD ADJUDICADORA'].replace('··>', ' > '),
+                'organo': " > ".join(entity[0:2]),
+                'suborgano': entity[2] if len(entity) > 2 else None,
                 'numero-expediente': row['Nº EXPEDIENTE'],
                 'procedimiento': row['PROCEDIMINETO DE ADJUDICACIÓN'],
                 'presupuesto-con-iva': presupuesto,
