@@ -9,11 +9,12 @@ BASE_URL = "http://www.madrid.org/cs/FileServlet"
 
 def main():
     parser = argparse.ArgumentParser(description='CLI to download contracts')
-    parser.add_argument('--start-date', type=valid_date, default=datetime(2015,1,1), help="Start date (Format %Y-%m-%d")
+    parser.add_argument('--start-date', type=valid_date, default=datetime(2008, 6, 1),
+                        help="Start date (Format %Y-%m-%d")
     parser.add_argument('--end-date', type=valid_date, default=datetime.now(), help="End date (Format %Y-%m-%d")
     parser.add_argument('--dir-path', default=os.path.dirname(__file__), help="End date (Format %Y-%m-%d")
     parser.add_argument('--no-partition', action="store_true", help="Downloads the data in a single file")
-    download(**vars(parser.parse_args()))
+    extract(**vars(parser.parse_args()))
 
 
 def valid_date(s: str) -> datetime:
@@ -24,7 +25,7 @@ def valid_date(s: str) -> datetime:
         raise argparse.ArgumentTypeError(msg)
 
 
-def download(start_date: datetime, end_date: datetime, dir_path: str, no_partition=False):
+def extract(start_date: datetime, end_date: datetime, dir_path: str, no_partition=False):
     if no_partition:
         start_date = (start_date - timedelta(days=1)).strftime('%Y-%m-%d')
         end_date = end_date.strftime('%Y-%m-%d')
