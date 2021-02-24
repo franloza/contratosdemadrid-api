@@ -57,7 +57,14 @@ class CompaniesRepository(BaseRepository):
                         "calendar_interval": "month"
                     }
                 },
-                "total": {"sum": {"field": "adjudicatario.vat_included"}},
+                "contracts": {
+                    "nested": {
+                        "path": "adjudicatario"
+                    },
+                    "aggs": {
+                        "total": {"sum": {"field": "adjudicatario.vat_included"}}
+                    }
+                }
             }
         })
 

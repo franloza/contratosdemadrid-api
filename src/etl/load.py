@@ -70,7 +70,7 @@ def transform(filename, date) -> list:
             "name": row['ADJUDICATARIO'],
             "vat_excluded": importe / 1.21,
             "vat_included": importe,
-            "nif": row["NIF ADJUDICATARIO"].replace('-', '').strip()
+            "nif": row["NIF ADJUDICATARIO"].replace('-', '').replace(' ', '').strip()
         }
         if (row['REFERENCIA']) not in contracts:
             entity = row['ENTIDAD ADJUDICADORA'].split('··>')
@@ -95,6 +95,7 @@ def transform(filename, date) -> list:
 
 
 def load_companies(es: Elasticsearch, data: list):
+    #es.indices.delete(index=COMPANIES_INDEX_NAME)
     es.indices.create(index=COMPANIES_INDEX_NAME, ignore=400)
     for contract in data:
         for company in contract['adjudicatario']:

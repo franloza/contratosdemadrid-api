@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends
 
 from api.app.api.dependencies.database import get_repository
 from api.app.db.repositories.companies import CompaniesRepository
-from api.app.db.repositories.contracts import ContractsRepository
 
 router = APIRouter()
 
@@ -38,22 +37,9 @@ async def get_company(
     company_id: str,
     companies_repo: CompaniesRepository = Depends(get_repository(CompaniesRepository)),
 ) -> dict:
-    contracts = await companies_repo.get_company_contracts(company_id)
-
-    bucket_list = contracts["aggregations"]["histogram"]["buckets"]
-    buckets = {}
-    doc_count = 0
-    for bucket in bucket_list:
-        month = dateutil.parser.parse(bucket["key_as_string"]).strftime("%m/%Y")
-        bucket["key_as_string"] = month
-        buckets[month] = bucket
-        doc_count += bucket["doc_count"]
-    aggregations = {"histogram": {"buckets": buckets},
-                    "contracts": {'doc_count': doc_count, "total": contracts["aggregations"].pop("total")}}
-    contracts["aggregations"] = aggregations
     return {
         "company": await companies_repo.get_company(company_id),
-        "contracts": contracts,
+        "contracts": await companies_repo.get_company_contracts(company_id),
         "competitors": {
             "took": 0,
             "timed_out": False,
