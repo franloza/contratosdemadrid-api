@@ -86,7 +86,10 @@ def transform(filename, date) -> list:
                 'presupuesto-con-iva': presupuesto,
                 'importe-con-iva': importe,
                 'adjudicatario': [adjudicatario],
-                "fecha-formalizacion": date
+                "fecha-formalizacion": date,
+                'url': (f"http://www.madrid.org/cs/Satellite?"
+                                      f"pagename=PortalContratacion/Comunes/Presentacion/PCON_resultadoBuscadorAvanzado"
+                                      f"&referencia={row['REFERENCIA']}&numeroExpediente={row['Nº EXPEDIENTE']}")
             }
         else:
             contracts[row['REFERENCIA']]['adjudicatario'].append(adjudicatario)

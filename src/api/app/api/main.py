@@ -27,5 +27,5 @@ async def search(
     contracts = await contracts_repo.search_contracts(q)
     for contract in contracts["hits"]["hits"]:
         contract["type"] = "contract"
-        result.append({"hit": contracts_repo.get_contract_adapter(contract)})
+        result.append({"hit": contract})
     return result

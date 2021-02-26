@@ -42,12 +42,4 @@ class ContractsRepository(BaseRepository):
           ]
         })
 
-    def get_contract_adapter(self, contract: dict):
-        contract = dict(contract)
-        contract["_source"]["numero-sogi"] = contract["_source"]["numero-expediente"]
-        contract["_source"]["duración"] = '- meses'
-        contract["_source"]["fecha-inicio-de-ejecucion"] = contract["_source"]["fecha-formalizacion"]
-        contract["_source"]["licitadores"] = 1
-        contract["_source"]["url"] = "http://www.madrid.org/cs/Satellite?cid=1224915242285&language=es&pagename=PortalContratacion%2FPage%2FPCON_buscadorAvanzado"
-        return contract
 

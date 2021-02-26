@@ -37,11 +37,7 @@ async def get_contract(
     contracts_repo: ContractsRepository = Depends(get_repository(ContractsRepository)),
 ) -> dict:
     contracts = await contracts_repo.get_contract(contract_id)
-    if len(contracts["hits"]["hits"]) > 0:
-        contract = contracts_repo.get_contract_adapter(contracts["hits"]["hits"][0])
-    else:
-        contract = {}
-    return contract
+    return contracts["hits"]["hits"][0] if len(contracts["hits"]["hits"]) > 0 else {}
 
 
 
