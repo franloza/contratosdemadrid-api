@@ -141,6 +141,7 @@ cython_debug/
 *.csv
 *.zip
 *.html
+*.json
 docs/
 
 # PyCharm

@@ -1,9 +1,9 @@
 from hashlib import sha1
-from io import StringIO
+import json
 from elasticsearch import Elasticsearch, NotFoundError
 import os
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime
 import glob
 import csv
 
@@ -33,11 +33,12 @@ def valid_date(s: str) -> datetime:
 def load(index_type: str, start_date: datetime, end_date: datetime, dir_path: str):
     es = Elasticsearch([{'host': 'localhost', 'port': '9200'}])
     csv.register_dialect('custom', delimiter=';')
-    for filename in glob.iglob(dir_path + '/**/*.csv', recursive=True):
-        date_str = os.path.basename(filename).replace('.csv', '')
+    for filename in glob.iglob(dir_path + '/**/*.json', recursive=True):
+        date_str = os.path.basename(filename).replace('.json', '')
         date = datetime.strptime(date_str, "%Y-%m-%d")
         if start_date <= date <= end_date:
-            data = transform(filename, date_str)
+            with open(filename) as json_file:
+                data = json.load(json_file)
             if index_type == "companies":
                 print(f"Loading companies for day {date_str}")
                 load_companies(es, data)
@@ -46,55 +47,6 @@ def load(index_type: str, start_date: datetime, end_date: datetime, dir_path: st
                 load_contracts(es, data)
             else:
                 raise NotImplemented()
-
-
-def transform(filename, date) -> list:
-    contracts = {}
-    with open(filename, 'r', encoding="utf-8") as file:
-        content = StringIO(file.read().replace('&#160;', ''))
-    csv_file = csv.DictReader(content, dialect='custom')
-    for row in csv_file:
-        try:
-            importe = float(row['IMPORTE DE ADJUDICACIÓN(CON IVA)'].replace('.', '').replace(',', '.'))
-        except ValueError:
-            importe = 0
-        except KeyError:
-            print(f"The file corresponding to date {date} has not a valid format. Skipping")
-            return []
-        try:
-            presupuesto = float(row['PRESUPUESTO DE LICITACIÓN(CON IVA)'].replace('.', '').replace(',', '.'))
-        except ValueError:
-            presupuesto = 0
-
-        adjudicatario = {
-            "name": row['ADJUDICATARIO'],
-            "vat_excluded": importe / 1.21,
-            "vat_included": importe,
-            "nif": row["NIF ADJUDICATARIO"].replace('-', '').replace(' ', '').strip()
-        }
-        if (row['REFERENCIA']) not in contracts:
-            entity = row['ENTIDAD ADJUDICADORA'].split('··>')
-            contracts[row['REFERENCIA']] = {
-                'titulo': row['OBJETO DEL CONTRATO'],
-                'referencia': row['REFERENCIA'],
-                'actuacion': row['TIPO DE PUBLICACIÓN'],
-                'tipo': row['TIPO CONTRATO'],
-                'organo': " > ".join(entity[0:2]),
-                'suborgano': entity[2] if len(entity) > 2 else None,
-                'numero-expediente': row['Nº EXPEDIENTE'],
-                'procedimiento': row['PROCEDIMINETO DE ADJUDICACIÓN'],
-                'presupuesto-con-iva': presupuesto,
-                'importe-con-iva': importe,
-                'adjudicatario': [adjudicatario],
-                "fecha-formalizacion": date,
-                'url': (f"http://www.madrid.org/cs/Satellite?"
-                                      f"pagename=PortalContratacion/Comunes/Presentacion/PCON_resultadoBuscadorAvanzado"
-                                      f"&referencia={row['REFERENCIA']}&numeroExpediente={row['Nº EXPEDIENTE']}")
-            }
-        else:
-            contracts[row['REFERENCIA']]['adjudicatario'].append(adjudicatario)
-            contracts[row['REFERENCIA']]['importe-con-iva'] += importe
-    return list(contracts.values())
 
 
 def load_companies(es: Elasticsearch, data: list):

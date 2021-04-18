@@ -17,7 +17,6 @@ def main():
                         help="Start date (Format %Y-%m-%d")
     parser.add_argument('--end-date', type=valid_date, default=datetime.now(), help="End date (Format %Y-%m-%d")
     parser.add_argument('--dir-path', default=os.path.dirname(__file__), help="End date (Format %Y-%m-%d")
-    parser.add_argument('--no-partition', action="store_true", help="Downloads the data in a single file")
     extract(**vars(parser.parse_args()))
 
 
@@ -31,7 +30,7 @@ def valid_date(s: str) -> datetime:
 
 def get_contract_urls(date: datetime, next_page=None, pages=None, urls=None):
     if pages is None:
-        print(f"Date: {date.strftime('%m/%d/%Y')}")
+        print(f"Date: {date.strftime('%d/%m/%Y')}")
     if urls is None:
         urls = []
     conn = http.client.HTTPConnection(BASE_URL)
@@ -77,18 +76,15 @@ def get_contract_urls(date: datetime, next_page=None, pages=None, urls=None):
     return urls
 
 
-def extract(start_date: datetime, end_date: datetime, dir_path: str, no_partition=False):
-    if no_partition:
-        raise NotImplementedError()
-    else:
-        day_count = (end_date - start_date).days + 1
-        for date in [d for d in (start_date + timedelta(n) for n in range(day_count)) if d <= end_date]:
-            urls = get_contract_urls(date)
-            for url in urls:
-                cid = re.search(CID_REGEX, url).groups()[0]
-                path = os.path.join(dir_path, date.strftime('%Y'), date.strftime('%m'), date.strftime('%d'), f"{cid}.html")
-                print(f"Downloading HTML file to {path}")
-                download_html(url, path)
+def extract(start_date: datetime, end_date: datetime, dir_path: str):
+    day_count = (end_date - start_date).days + 1
+    for date in [d for d in (start_date + timedelta(n) for n in range(day_count)) if d <= end_date]:
+        urls = get_contract_urls(date)
+        for url in urls:
+            cid = re.search(CID_REGEX, url).groups()[0]
+            path = os.path.join(dir_path, date.strftime('%Y'), date.strftime('%m'), date.strftime('%d'), f"{cid}.html")
+            print(f"Downloading HTML file to {path}")
+            download_html(url, path)
 
 
 def download_html(url: str, path: str):
