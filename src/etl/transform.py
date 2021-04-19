@@ -109,22 +109,28 @@ def transform_html(filename, cid) -> dict:
                         contract[attr_mapping[attr_name]] = attr_value
                     elif attr_name == "Compra pública innovadora":
                         contract["compra-innovadora"] = False if attr_value == "No" else True
-                    elif attr_name == "Formalización del contrato publicada el":
+                    elif attr_name in ("Formalización del contrato publicada el", "Contrato desierto el"):
                         contract["fecha-formalizacion"] = parse_contract_date(attr_value)
                     elif attr_name == "Adjudicación del contrato publicada el":
                         contract["fecha-adjudicacion"] = parse_contract_date(attr_value)
-                    elif attr_name == "Fecha límite de presentación de ofertas o solicitudes de participación":
+                    elif attr_name in (
+                            "Fecha límite de presentación de ofertas o solicitudes de participación",
+                            "Defectos u omisiones de la documentación publicados el",
+                            "Ofertas anormales o desproporcionadas publicadas el"):
                         pass
                     elif attr_name in ("Fecha publicación de la licitación en el BOCM", "Formalización del contrato publicada en BOCM el"):
                         contract["fecha-publicacion"] = parse_contract_date(attr_value)
                     elif attr_name == "Entidad adjudicadora":
-                        entity = attr_value.split('··>')
-                        contract['organo'] = " > ".join(entity[0:2])
-                        contract['suborgano'] = entity[2] if len(entity) > 2 else None
-                    elif attr_name in ("Puntos de Información", "Otros Anuncios"):
+                        if "→" in attr_value:
+                            entity = attr_value.split("→")
+                        else:
+                            entity = attr_value.split('··>')
+                        contract['organo'] = " > ".join(entity[0:2]).strip()
+                        contract['suborgano'] = entity[2].strip() if len(entity) > 2 else None
+                    elif attr_name in ("Puntos de Información", "Otros Anuncios", "Modalidad"):
                         pass
                     else:
-                        raise ValueError(f"Attribute not expected: {attr}")
+                        print(f"Attribute skipped: {attr_name} - {attr_value}. CID: {cid}")
                 elif attr.find("table", {"class": "tableAdjudicacion"}) is not None:
                     table = attr.find("table", {"class": "tableAdjudicacion"})
                     header = table.find("thead").extract()
@@ -133,7 +139,7 @@ def transform_html(filename, cid) -> dict:
                         for row in rows:
                             cells = row.findAll("td")
                             result = cells[2].string
-                            if result != "Desierto":
+                            if result not in ("Desierto", "Desistimiento"):
                                 awardee = {
                                     "lote": cells[0].string,
                                     "num-ofertas": int(cells[1].string),

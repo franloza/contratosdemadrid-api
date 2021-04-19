@@ -47,9 +47,12 @@ def get_contract_urls(date: datetime, next_page=None, pages=None, urls=None):
                    "-----011000010111000001101001\r\n"
                    "Content-Disposition: form-data; name=\"language\"\r\n\r\nes\r\n"
                    "-----011000010111000001101001\r\n"
-                   f"Content-Disposition: form-data; name=\"fechaAdjudicacionDesde\"\r\n\r\n{date_str}\r\n"
+                   f"Content-Disposition: form-d"
+                   f""
+                   f""
+                   f"ata; name=\"fechaFormalizacionDesde\"\r\n\r\n{date_str}\r\n"
                    "-----011000010111000001101001\r\n"
-                   f"Content-Disposition: form-data; name=\"fechaAdjudicacionHasta\"\r\n\r\n{date_str}\r\n"
+                   f"Content-Disposition: form-data; name=\"fechaFormalizacionHasta\"\r\n\r\n{date_str}\r\n"
                    "-----011000010111000001101001--\r\n")
         headers = {
             'content-type': "multipart/form-data; boundary=---011000010111000001101001"
@@ -81,8 +84,14 @@ def extract(start_date: datetime, end_date: datetime, dir_path: str):
     for date in [d for d in (start_date + timedelta(n) for n in range(day_count)) if d <= end_date]:
         urls = get_contract_urls(date)
         for url in urls:
-            cid = re.search(CID_REGEX, url).groups()[0]
-            path = os.path.join(dir_path, date.strftime('%Y'), date.strftime('%m'), date.strftime('%d'), f"{cid}.html")
+            try:
+                cid = re.search(CID_REGEX, url).groups()[0]
+                idoc = None
+            except Exception:
+                cid = None
+                idoc = url.split('&')[2].replace('idoc=', '')
+            path = os.path.join(dir_path, date.strftime('%Y'), date.strftime('%m'), date.strftime('%d'),
+                                f"{cid or idoc}.html")
             print(f"Downloading HTML file to {path}")
             download_html(url, path)
 
