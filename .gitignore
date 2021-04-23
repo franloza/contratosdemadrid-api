@@ -140,6 +140,8 @@ cython_debug/
 # Assets
 *.csv
 *.zip
+*.html
+*.json
 docs/
 
 # PyCharm

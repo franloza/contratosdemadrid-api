@@ -8,7 +8,7 @@ BASE_URL = "http://www.madrid.org/cs/FileServlet"
 
 
 def main():
-    parser = argparse.ArgumentParser(description='CLI to download contracts')
+    parser = argparse.ArgumentParser(description='CLI to download contracts in CSV format')
     parser.add_argument('--start-date', type=valid_date, default=datetime(2008, 6, 1),
                         help="Start date (Format %Y-%m-%d")
     parser.add_argument('--end-date', type=valid_date, default=datetime.now(), help="End date (Format %Y-%m-%d")
