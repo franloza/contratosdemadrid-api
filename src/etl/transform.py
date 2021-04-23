@@ -8,7 +8,7 @@ import csv
 import locale
 import os
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 
 
 def main():
@@ -73,8 +73,11 @@ def transform_html(filename, cid) -> dict:
     with open(filename, 'r') as f:
         contents = f.read()
         soup = BeautifulSoup(contents, 'html.parser')
+        title = soup.find("h2", {"class", "tit11gr3"})
+        for element in title(text=lambda text: isinstance(text, Comment)):
+            element.extract()
         contract = {
-            "titulo": soup.find("h2", {"class", "tit11gr3"}).string
+            "titulo": title.string
         }
         soup.find("h2", {"class", "tit11gr3"})
         contract_attr_lists = soup.findAll("div", {"class": "listado"})
@@ -92,6 +95,7 @@ def transform_html(filename, cid) -> dict:
                     attr_mapping = {
                         "Estado de la licitación": "estado",
                         "Tipo resolución": "tipo-resolucion",
+                        "Resultado": "tipo-resolucion",
                         "Objeto del contrato": "objeto-contrato",
                         "Código CPV": "codigo-cpv",
                         "Tipo Publicación": "actuacion",
@@ -109,7 +113,8 @@ def transform_html(filename, cid) -> dict:
                         contract[attr_mapping[attr_name]] = attr_value
                     elif attr_name == "Compra pública innovadora":
                         contract["compra-innovadora"] = False if attr_value == "No" else True
-                    elif attr_name in ("Formalización del contrato publicada el", "Contrato desierto el"):
+                    elif attr_name in ("Formalización del contrato publicada el", "Contrato desierto el",
+                                       "Fecha del contrato",):
                         contract["fecha-formalizacion"] = parse_contract_date(attr_value)
                     elif attr_name == "Adjudicación del contrato publicada el":
                         contract["fecha-adjudicacion"] = parse_contract_date(attr_value)
@@ -118,7 +123,11 @@ def transform_html(filename, cid) -> dict:
                             "Defectos u omisiones de la documentación publicados el",
                             "Ofertas anormales o desproporcionadas publicadas el"):
                         pass
-                    elif attr_name in ("Fecha publicación de la licitación en el BOCM", "Formalización del contrato publicada en BOCM el"):
+                    elif attr_name in ("Fecha publicación de la licitación en el BOCM",
+                                       "Formalización del contrato publicada en BOCM el",
+                                       "Fecha de publicación",
+                                       "Renuncia del contrato publicada el",
+                                       "Desistimiento del contrato publicado el"):
                         contract["fecha-publicacion"] = parse_contract_date(attr_value)
                     elif attr_name == "Entidad adjudicadora":
                         if "→" in attr_value:
@@ -127,7 +136,7 @@ def transform_html(filename, cid) -> dict:
                             entity = attr_value.split('··>')
                         contract['organo'] = " > ".join(entity[0:2]).strip()
                         contract['suborgano'] = entity[2].strip() if len(entity) > 2 else None
-                    elif attr_name in ("Puntos de Información", "Otros Anuncios", "Modalidad"):
+                    elif attr_name in ("Puntos de Información", "Otros Anuncios", "Modalidad", "Número de ofertas"):
                         pass
                     else:
                         print(f"Attribute skipped: {attr_name} - {attr_value}. CID: {cid}")
@@ -139,7 +148,7 @@ def transform_html(filename, cid) -> dict:
                         for row in rows:
                             cells = row.findAll("td")
                             result = cells[2].string
-                            if result not in ("Desierto", "Desistimiento"):
+                            if result not in ("Desierto", "Desistimiento", "Renuncia", "", None):
                                 awardee = {
                                     "lote": cells[0].string,
                                     "num-ofertas": int(cells[1].string),
@@ -155,7 +164,7 @@ def transform_html(filename, cid) -> dict:
                     raise ValueError(f"Attribute not expected: {attr}")
         contract["url"] = ("http://www.madrid.org/cs/Satellite?"
                            "c=CM_ConvocaPrestac_FA&"
-                           f"cid={cid}"
+                           f"{'idoc' if '-' in cid else 'cid'}={cid}"
                            "&definicion=Contratos+Publicos"
                            "&language=es"
                            "&op2=PCON"
@@ -174,6 +183,8 @@ def transform_html(filename, cid) -> dict:
 def parse_contract_date(date_str) -> str:
     date_list = date_str.strip().split(" ")
     date_list[1] = date_list[1].capitalize()
+    if len(date_list) == 4:
+        date_list = date_list[0:3]
     date_str = " ".join(date_list)
     return datetime.strptime(date_str, '%d %B %Y').strftime("%Y-%m-%d")
 
