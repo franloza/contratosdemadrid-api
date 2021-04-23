@@ -1,4 +1,4 @@
-#contratosdemadrid
+# contratosdemadrid
 
 ## What is this?
 
@@ -14,7 +14,7 @@ The API as well as the ETL code is developed in Python using [FastAPI](https://f
 [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/) and [Elasticsearch](https://elasticsearch-py.readthedocs.io/en/v7.12.0/).
   
 ## Why did you reverse-engineered an API?
-The original API has been developed by (@JaimeObregon)[https://github.com/JaimeObregon], but the code has not been open 
+The original API has been developed by [@JaimeObregon](https://github.com/JaimeObregon), but the code has not been open 
 sourced (Neither the frontend nor the backend). I wanted to reuse the frontend, which is a great tool, so I kept the
 same endpoints and object schema. Then, I downloaded the frontend source code from [https://contratosdecantabria.es/](https://contratosdecantabria.es/), modify the URLs to point to 
 `localhost` and run the frontend with [ExpressJS](https://expressjs.com/):
@@ -42,7 +42,7 @@ same endpoints and object schema. Then, I downloaded the frontend source code fr
 ```
 
 - `index.js`: 
-```json
+```js
 const express = require('express');
 const app = express();
 const PORT = 3000;
@@ -80,6 +80,7 @@ They have been obtained from a modified version of [contratosdecantabria.es](con
 ![](img/ranking.png)
 ![](img/logs.png)
 ![](img/client.png)
+![](img/count.png)
 
 
 ## Getting started 
