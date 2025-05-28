@@ -1,4 +1,4 @@
-# contratosdemadrid
+# ContratosDeMadrid API
 
 ## What is this?
 
