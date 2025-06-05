@@ -1,5 +1,12 @@
 # ContratosDeMadrid API
 
+**DEPRECATION NOTICE**
+
+This project is deprecated and superseded by [a new project](https://github.com/franloza/contratosdemadrid).
+The original data source (`http://www.madrid.org/cs/FileServlet`) is no longer available. The new project uses an alternative data source and includes a [web application](https://franloza.contratosdemadrid.com), removing the need for this API.
+
+---
+
 ## What is this?
 
 This is an API reverse-engineered from [https://api.contratosdecantabria.es/](api.contratosdecantabria.es), 
